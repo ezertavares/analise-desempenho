@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Desempenho Escolar - Escola Estadual Benevides Beraldo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFFFFF; /* Fundo branco */
+            color: #333333; /* Cor escura para o texto principal */
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #F9FAFB; /* Um tom de branco suave para o container */
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #E0E0E0; /* Borda clara */
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1A202C; /* Cor escura para o cabeçalho */
+        }
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+        .header p {
+            font-size: 1.2rem;
+            color: #555555; /* Tom mais suave para o subtítulo */
+        }
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2D3748; /* Cor escura para títulos de seção */
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3498db; /* Linha azul destacada */
+        }
+        .info-box {
+            background-color: #EBF8FF; /* Azul claro para caixas de informação */
+            border-left: 5px solid #3498db; /* Azul forte para a borda */
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            color: #2C5282; /* Texto azul escuro */
+            font-size: 1.05rem;
+        }
+        .list-item {
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+        .list-item strong {
+            color: #3498db; /* Azul para destaque */
+        }
+        .chart-container {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E0E0E0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* Default max-width and max-height for all chart containers, can be overridden */
+            max-width: 800px;
+            max-height: 550px;
+        }
+        .chart-container canvas {
+            width: 100% !important;
+            height: auto !important;
+            /* Default max-height for all canvases, will be overridden for specific charts */
+            max-height: 500px;
+        }
+
+        /* Specific styles for discipline charts in Ensino Médio and Ensino Fundamental tabs */
+        /* These are the "Comparativo de Desempenho por Disciplina" charts */
+        #ensino-medio-content .chart-container,
+        #ensino-fundamental-content .chart-container {
+            max-width: 600px; /* Largura reduzida para esses gráficos */
+            max-height: 450px; /* Altura aumentada para melhor visualização dos labels */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #ensino-medio-content .chart-container canvas,
+        #ensino-fundamental-content .chart-container canvas {
+            max-height: 400px !important; /* Altura do canvas ajustada */
+        }
+
+        /* Specific styles for overall general charts in Ensino Médio and Ensino Fundamental tabs */
+        /* These are the "Desempenho Geral da Turma" charts */
+        .overall-general-chart-container {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E0E0E0;
+            max-width: 400px; /* Largura padronizada menor */
+            max-height: 300px; /* Altura padronizada menor */
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .overall-general-chart-container canvas {
+            max-height: 250px !important; /* Altura do canvas padronizada */
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Specific style for the overall chart in the "Geral" tab */
+        /* This is the "Gráfico Comparativo de Desempenho Geral por Turma (Todas as Turmas)" chart */
+        #geral-content .chart-container {
+            max-width: 700px; /* Largura ligeiramente maior para comparação geral */
+            max-height: 550px; /* Altura ligeiramente maior para comparação geral */
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #geral-content .chart-container canvas {
+            max-height: 500px !important; /* Altura do canvas */
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .data-table th, .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #EEEEEE;
+            color: #333333;
+        }
+        .data-table th {
+            background-color: #F2F2F2;
+            font-weight: 600;
+            color: #1A202C;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        .data-table tbody tr:hover {
+            background-color: #F5F5F5;
+        }
+        .positive-evolution {
+            color: #28a745; /* Verde */
+            font-weight: 600;
+        }
+        .negative-evolution {
+            color: #dc3545; /* Vermelho */
+            font-weight: 600;
+        }
+        .neutral-evolution {
+            color: #6c757d; /* Cinza */
+            font-weight: 600;
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: #E0E0E0;
+            color: #555555;
+            transition: all 0.2s ease;
+            border: 1px solid #CCCCCC;
+            border-bottom: none;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .tab-content {
+            border: 1px solid #E0E0E0;
+            border-radius: 0 8px 8px 8px;
+            padding: 1.5rem;
+            background-color: #F9FAFB;
+        }
+        .select-container {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .select-container select {
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #CCCCCC;
+            background-color: #FFFFFF;
+            color: #333333;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            outline: none;
+        }
+        .select-container select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+        }
+        .gemini-button {
+            background-color: #0F9D58; /* Verde Google */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .gemini-button:hover {
+            background-color: #0B8043; /* Verde Google mais escuro */
+        }
+        .recommendations-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #EBF8FF; /* Azul claro */
+            border-left: 5px solid #0F9D58; /* Verde Google para destaque */
+            border-radius: 10px;
+            color: #2C5282;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .recommendations-section h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #0F9D58; /* Verde Google */
+        }
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: #3498db;
+        }
+        .loading-indicator svg {
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Relatório de Análise de Desempenho Escolar</h1>
+            <p>Escola Estadual Benevides Beraldo - Comendador</p>
+            <p>2º Bimestre</p>
+        </header>
+
+        <div class="flex justify-center mb-6">
+            <button class="tab-button active" data-tab="ensino-medio">Ensino Médio</button>
+            <button class="tab-button" data-tab="ensino-fundamental">Ensino Fundamental</button>
+            <button class="tab-button" data-tab="geral">Análise Geral (Todas as Turmas)</button>
+        </div>
+
+        <div id="ensino-medio-content" class="tab-content">
+            <h2 class="section-title">Análise do Ensino Médio</h2>
+            <div class="select-container">
+                <label for="high-school-class-select" class="font-semibold mr-2">Selecione a Turma:</label>
+                <select id="high-school-class-select"></select>
+            </div>
+            
+            <h3 class="text-xl font-bold mb-4">Desempenho da Turma Selecionada: <span id="current-high-school-class-name"></span></h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Disciplina</th>
+                            <th>1º Bimestre (%)</th>
+                            <th>2º Bimestre (%)</th>
+                            <th>Evolução (%)</th>
+                            <th>Classificação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="high-school-evolution-table-body">
+                        <!-- Data will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="text-xl font-bold mb-4 text-center">Comparativo de Desempenho por Disciplina (<span id="highSchoolPerformanceChartTitleClass"></span>)</h3>
+                <canvas id="highSchoolPerformanceChart"></canvas>
+            </div>
+            <div class="overall-general-chart-container">
+                <h3 class="text-xl font-bold mb-4 text-center">Desempenho Geral da Turma (<span id="highSchoolOverallGeneralChartTitleClass"></span>)</h3>
+                <canvas id="highSchoolOverallGeneralChart"></canvas>
+            </div>
+
+            <button id="generate-high-school-recommendations-btn" class="gemini-button">✨ Gerar Recomendações para a Turma</button>
+            <div id="high-school-recommendations-output" class="recommendations-section hidden">
+                <h3>Recomendações Geradas pelo Gemini:</h3>
+                <div id="high-school-recommendations-text"></div>
+                <div id="high-school-loading-indicator" class="loading-indicator hidden">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Gerando recomendações...
+                </div>
+            </div>
+
+            <h2 class="section-title">Disciplinas com Melhor Desempenho (Ensino Médio)</h2>
+            <ul id="high-school-best-performance-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Turmas do Ensino Médio com Maior Evolução Geral</h2>
+            <ul id="high-school-highest-evolution-classes-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Disciplinas com Maiores Quedas no Desempenho Geral (Ensino Médio)</h2>
+            <ul id="high-school-biggest-drops-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Classificação Geral por Disciplina no 2º Bimestre (Ensino Médio)</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Classificação</th>
+                        <th>Disciplina</th>
+                        <th>Média Geral do 2º Bimestre (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="high-school-discipline-ranking-table-body">
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="ensino-fundamental-content" class="tab-content hidden">
+            <h2 class="section-title">Análise do Ensino Fundamental</h2>
+            <div class="select-container">
+                <label for="fundamental-class-select" class="font-semibold mr-2">Selecione a Turma:</label>
+                <select id="fundamental-class-select"></select>
+            </div>
+
+            <h3 class="text-xl font-bold mb-4">Desempenho da Turma Selecionada: <span id="current-fundamental-class-name"></span></h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Disciplina</th>
+                            <th>1º Bimestre (%)</th>
+                            <th>2º Bimestre (%)</th>
+                            <th>Evolução (%)</th>
+                            <th>Classificação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fundamental-evolution-table-body">
+                        <!-- Data will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="text-xl font-bold mb-4 text-center">Comparativo de Desempenho por Disciplina (<span id="fundamentalPerformanceChartTitleClass"></span>)</h3>
+                <canvas id="fundamentalPerformanceChart"></canvas>
+            </div>
+            <div class="overall-general-chart-container">
+                <h3 class="text-xl font-bold mb-4 text-center">Desempenho Geral da Turma (<span id="fundamentalOverallGeneralChartTitleClass"></span>)</h3>
+                <canvas id="fundamentalOverallGeneralChart"></canvas>
+            </div>
+
+            <button id="generate-fundamental-recommendations-btn" class="gemini-button">✨ Gerar Recomendações para a Turma</button>
+            <div id="fundamental-recommendations-output" class="recommendations-section hidden">
+                <h3>Recomendações Geradas pelo Gemini:</h3>
+                <div id="fundamental-recommendations-text"></div>
+                <div id="fundamental-loading-indicator" class="loading-indicator hidden">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Gerando recomendações...
+                </div>
+            </div>
+
+            <h2 class="section-title">Disciplinas com Melhor Desempenho (Ensino Fundamental)</h2>
+            <ul id="fundamental-best-performance-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Turmas do Ensino Fundamental com Maior Evolução Geral</h2>
+            <ul id="fundamental-highest-evolution-classes-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Disciplinas com Maiores Quedas no Desempenho Geral (Ensino Fundamental)</h2>
+            <ul id="biggest-fundamental-drops-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Classificação Geral por Disciplina no 2º Bimestre (Ensino Fundamental)</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Classificação</th>
+                        <th>Disciplina</th>
+                        <th>Média Geral do 2º Bimestre (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="fundamental-discipline-ranking-table-body">
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="geral-content" class="tab-content hidden">
+            <h2 class="section-title">Análise Geral (Ensino Médio e Fundamental)</h2>
+            
+            <h2 class="section-title">Disciplinas com Melhor Desempenho (Todas as Turmas)</h2>
+            <ul id="overall-best-performance-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Turmas com Maior Evolução Geral (Todas as Turmas)</h2>
+            <ul id="overall-highest-evolution-classes-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Disciplinas com Maiores Quedas no Desempenho Geral (Todas as Turmas)</h2>
+            <ul id="overall-biggest-drops-list" class="list-disc ml-6"></ul>
+
+            <h2 class="section-title">Classificação Geral por Disciplina no 2º Bimestre (Todas as Turmas)</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Classificação</th>
+                        <th>Disciplina</th>
+                        <th>Média Geral do 2º Bimestre (%)</th>
+                    </tr>
+                </thead>
+                <tbody id="overall-discipline-ranking-table-body">
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+
+            <div class="chart-container">
+                <h3 class="text-xl font-bold mb-4 text-center">Gráfico Comparativo de Desempenho Geral por Turma (Todas as Turmas)</h3>
+                <canvas id="overallPerformanceAllClassesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        Chart.register(ChartDataLabels);
+
+        // Raw data extracted from the provided files
+        const rawData = {
+            "Ensino Médio": {
+                "1ª Série A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 98.40, bim2: 93.30, evolucao: -5.10, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 44.20, bim2: 50.70, evolucao: 6.50, classificacao: 50 },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 26.90, bim2: 30.80, evolucao: 3.90, classificacao: 76 },
+                        { disciplina: "História", symbol: "📜", bim1: 44.80, bim2: 43.80, evolucao: -1.00, classificacao: 78 },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 47.60, bim2: 49.10, evolucao: 1.50, classificacao: 84 },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 41.70, bim2: 60.70, evolucao: 19.00, classificacao: 50 },
+                        { disciplina: "Física", symbol: "⚛️", bim1: 23.30, bim2: 26.50, evolucao: 3.20, classificacao: 47 },
+                        { disciplina: "Química", symbol: "🧪", bim1: 30.00, bim2: 38.80, evolucao: 8.80, classificacao: 81 },
+                        { disciplina: "Biologia", symbol: "🌿", bim1: 41.70, bim2: 58.50, evolucao: 16.80, classificacao: 59 },
+                        { disciplina: "Filosofia", symbol: "🤔", bim1: 33.90, bim2: 47.80, evolucao: 13.90, classificacao: 70 },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 44.50, bim2: 32.90, evolucao: -11.60, classificacao: 84 }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 37.50, bim2: 43.60, evolucao: 6.10, classificacao: '-', isGeneral: true }
+                },
+                "1ª Série B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 100.00, bim2: 95.20, evolucao: -4.80, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 40.80, bim2: 51.30, evolucao: 10.50, classificacao: 77 },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 28.30, bim2: 26.60, evolucao: -1.70, classificacao: 84 },
+                        { disciplina: "História", symbol: "📜", bim1: 43.50, bim2: 46.30, evolucao: 2.80, classificacao: 52 },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 37.50, bim2: 46.30, evolucao: 8.80, classificacao: 76 },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 40.50, bim2: 51.70, evolucao: 11.20, classificacao: 59 },
+                        { disciplina: "Física", symbol: "⚛️", bim1: 22.20, bim2: 20.00, evolucao: -2.20, classificacao: 70 },
+                        { disciplina: "Química", symbol: "🧪", bim1: 31.50, bim2: 39.40, evolucao: 7.90, classificacao: 36 },
+                        { disciplina: "Biologia", symbol: "🌿", bim1: 36.90, bim2: 48.10, evolucao: 11.20, classificacao: 82 },
+                        { disciplina: "Filosofia", symbol: "🤔", bim1: 29.20, bim2: 47.50, evolucao: 18.30, classificacao: 50 },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 34.30, bim2: 35.00, evolucao: 0.70, classificacao: 27 }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 34.60, bim2: 41.00, evolucao: 6.40, classificacao: '-', isGeneral: true }
+                },
+                "2ª Série A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 89.50, bim2: 100.00, evolucao: 10.50, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 51.50, bim2: 51.20, evolucao: -0.30, classificacao: "29 de 53" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 26.50, bim2: 19.90, evolucao: -6.60, classificacao: "40 de 53" },
+                        { disciplina: "História", symbol: "📜", bim1: 34.30, bim2: 42.70, evolucao: 8.40, classificacao: "45 de 53" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 39.20, bim2: 54.20, evolucao: 15.00, classificacao: "46 de 53" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 39.20, bim2: 52.10, evolucao: 12.90, classificacao: "43 de 53" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 30.40, bim2: 40.60, evolucao: 10.20, classificacao: "28 de 53" },
+                        { disciplina: "Física", symbol: "⚛️", bim1: 30.40, bim2: 26.00, evolucao: -4.40, classificacao: "55 de 53" },
+                        { disciplina: "Química", symbol: "🧪", bim1: 24.50, bim2: 36.50, evolucao: 12.00, classificacao: "52 de 53" },
+                        { disciplina: "Biologia", symbol: "🌿", bim1: 48.00, bim2: 49.00, evolucao: 1.00, classificacao: "41 de 53" },
+                        { disciplina: "Oratória", symbol: "🎤", bim1: 29.40, bim2: 37.50, evolucao: 8.10, classificacao: "32 de 53" },
+                        { disciplina: "Sociologia", symbol: "👥", bim1: 40.20, bim2: 45.80, evolucao: 5.60, classificacao: '-' },
+                        { disciplina: "Liderança", symbol: "🏆", bim1: 60.00, bim2: 52.50, evolucao: -7.50, classificacao: '-' }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 37.90, bim2: 40.80, evolucao: 2.90, classificacao: '-', isGeneral: true }
+                },
+                "2ª Série B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 86.80, bim2: 89.50, evolucao: 2.70, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 46.10, bim2: 55.20, evolucao: 9.10, classificacao: "50 de 53" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 21.70, bim2: 30.50, evolucao: 8.80, classificacao: "47 de 53" },
+                        { disciplina: "História", symbol: "📜", bim1: 37.50, bim2: 40.70, evolucao: 3.20, classificacao: "48 de 53" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 40.60, bim2: 62.00, evolucao: 21.40, classificacao: "30 de 53" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 49.00, bim2: 47.20, evolucao: -1.80, classificacao: "52 de 53" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 28.40, bim2: 54.20, evolucao: 25.80, classificacao: "28 de 53" },
+                        { disciplina: "Física", symbol: "⚛️", bim1: 30.40, bim2: 41.70, evolucao: 11.30, classificacao: "50 de 53" },
+                        { disciplina: "Química", symbol: "🧪", bim1: 34.30, bim2: 52.10, evolucao: 17.80, classificacao: "37 de 53" },
+                        { disciplina: "Biologia", symbol: "🌿", bim1: 59.80, bim2: 57.30, evolucao: -2.50, classificacao: "32 de 53" },
+                        { disciplina: "Empreendedorismo", symbol: "💡", bim1: 43.80, bim2: 52.20, evolucao: 8.40, classificacao: "16 de 53" },
+                        { disciplina: "Sociologia", symbol: "👥", bim1: 54.20, bim2: 60.20, evolucao: 6.00, classificacao: '-' },
+                        { disciplina: "Programação", symbol: "💻", bim1: 37.60, bim2: 33.80, evolucao: -3.80, classificacao: "8 de 53" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 38.70, bim2: 48.00, evolucao: 9.30, classificacao: '-', isGeneral: true }
+                },
+                "3ª Série A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 96.70, bim2: 100.00, evolucao: 3.30, classificacaoDE: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 37.80, bim2: 29.10, evolucao: -8.70, classificacaoDE: 67 },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 28.60, bim2: 35.90, evolucao: 7.30, classificacaoDE: 44 },
+                        { disciplina: "História", symbol: "📜", bim1: 32.70, bim2: 33.10, evolucao: 0.40, classificacaoDE: 71 },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 33.30, bim2: 31.90, evolucao: -1.40, classificacaoDE: 54 },
+                        { disciplina: "Física", symbol: "⚛️", bim1: 34.70, bim2: 37.40, evolucao: 2.70, classificacaoDE: 47 },
+                        { disciplina: "Empreendedorismo", symbol: "💡", bim1: 20.00, bim2: 40.00, evolucao: 20.00, classificacaoDE: 38 },
+                        { disciplina: "Química Aplicada", symbol: "🧪", bim1: 36.40, bim2: 29.20, evolucao: -7.20, classificacaoDE: 38 },
+                        { disciplina: "Biotecnologia", symbol: "🧬", bim1: 20.00, bim2: 20.00, evolucao: 0.00, classificacaoDE: 38 },
+                        { disciplina: "Programação", symbol: "💻", bim1: 25.70, bim2: 27.70, evolucao: 2.00, classificacaoDE: 38 },
+                        { disciplina: "OE Português", symbol: "📖", bim1: 0.00, bim2: 37.50, evolucao: 37.50, classificacaoDE: '-' },
+                        { disciplina: "OE Matemática", symbol: "📐", bim1: 0.00, bim2: 45.20, evolucao: 45.20, classificacaoDE: 50 }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 32.20, bim2: 33.20, evolucao: 1.00, classificacaoDE: '-', isGeneral: true }
+                },
+                "3ª Série B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 100.00, bim2: 93.90, evolucao: -6.10, classificacaoDE: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 53.10, bim2: 61.10, evolucao: 8.00, classificacaoDE: 14 },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 40.70, bim2: 27.20, evolucao: -13.50, classificacaoDE: 47 },
+                        { disciplina: "História", symbol: "📜", bim1: 51.10, bim2: 48.80, evolucao: -2.30, classificacaoDE: 70 },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 52.40, bim2: 53.60, evolucao: 1.20, classificacaoDE: 54 },
+                        { disciplina: "Física", symbol: "⚛️", bim1: 44.40, bim2: 38.10, evolucao: -6.30, classificacaoDE: 38 },
+                        { disciplina: "Arte e Mídias Digitais", symbol: "🎨", bim1: 57.80, bim2: 60.00, evolucao: 2.20, classificacaoDE: 19 },
+                        { disciplina: "Oratória", symbol: "🎤", bim1: 73.30, bim2: 57.50, evolucao: -15.80, classificacaoDE: 12 },
+                        { disciplina: "Geopolítica", symbol: "🌎", bim1: 57.80, bim2: 74.40, evolucao: 16.60, classificacaoDE: 5 },
+                        { disciplina: "Filosofia e Sociedade Moderna", symbol: "🤔", bim1: 61.10, bim2: 58.90, evolucao: -2.20, classificacaoDE: 19 },
+                        { disciplina: "OE Português", symbol: "📖", bim1: 0.00, bim2: 65.60, evolucao: 65.60, classificacaoDE: '-' },
+                        { disciplina: "OE Matemática", symbol: "📐", bim1: 0.00, bim2: 40.30, evolucao: 40.30, classificacaoDE: 57 }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 50.00, bim2: 51.40, evolucao: 1.40, classificacaoDE: '-', isGeneral: true }
+                }
+            },
+            "Ensino Fundamental": {
+                "6º Ano A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 92.60, bim2: 100.00, evolucao: 7.40, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 41.50, bim2: 41.00, evolucao: -0.50, classificacao: "12 de 93" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 44.10, bim2: 32.30, evolucao: -11.80, classificacao: "93 de 93" },
+                        { disciplina: "História", symbol: "📜", bim1: 35.80, bim2: 40.00, evolucao: 4.20, classificacao: "55 de 93" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 40.40, bim2: 34.00, evolucao: -6.40, classificacao: "93 de 93" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 60.80, bim2: 52.00, evolucao: -8.80, classificacao: "86 de 93" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 36.20, bim2: 46.80, evolucao: 10.60, classificacao: "62 de 93" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 47.70, bim2: 39.20, evolucao: -8.50, classificacao: "90 de 93" },
+                        { disciplina: "Tecnologia e Inovação", symbol: "💻", bim1: 40.80, bim2: 32.80, evolucao: -8.00, classificacao: "53 de 93" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 42.10, bim2: 39.20, evolucao: -2.90, classificacao: '-', isGeneral: true }
+                },
+                "6º Ano B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 92.60, bim2: 89.80, evolucao: -2.80, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 40.20, bim2: 43.70, evolucao: 3.50, classificacao: "43 de 93" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 45.30, bim2: 37.10, evolucao: -8.20, classificacao: "81 de 93" },
+                        { disciplina: "História", symbol: "📜", bim1: 28.80, bim2: 43.50, evolucao: 14.70, classificacao: "84 de 93" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 44.40, bim2: 34.30, evolucao: -10.10, classificacao: "53 de 93" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 64.00, bim2: 60.00, evolucao: -4.00, classificacao: "86 de 93" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 40.00, bim2: 43.60, evolucao: 3.60, classificacao: "78 de 93" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 44.80, bim2: 46.40, evolucao: 1.60, classificacao: "70 de 93" },
+                        { disciplina: "Tecnologia e Inovação", symbol: "💻", bim1: 42.40, bim2: 39.20, evolucao: -3.20, classificacao: "25 de 93" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 42.20, bim2: 42.20, evolucao: 0.00, classificacao: '-', isGeneral: true }
+                },
+                "7º Ano A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 90.00, bim2: 92.90, evolucao: 2.90, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 35.40, bim2: 33.10, evolucao: -2.30, classificacao: "73/94" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 41.00, bim2: 29.20, evolucao: -11.80, classificacao: "78/94" },
+                        { disciplina: "História", symbol: "📜", bim1: 23.60, bim2: 30.00, evolucao: 6.40, classificacao: "94/94" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 28.60, bim2: 32.30, evolucao: 3.70, classificacao: "80/94" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 56.90, bim2: 26.20, evolucao: -30.70, classificacao: "94/94" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 37.70, bim2: 34.60, evolucao: -3.10, classificacao: "92/94" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 47.70, bim2: 30.80, evolucao: -16.90, classificacao: "94/94" },
+                        { disciplina: "Tecnologia e Inovação", symbol: "💻", bim1: 29.20, bim2: 32.30, evolucao: 3.10, classificacao: "62/94" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 35.90, bim2: 31.40, evolucao: -4.50, classificacao: '-', isGeneral: true }
+                },
+                "7º Ano B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 90.90, bim2: 95.20, evolucao: 4.30, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 47.80, bim2: 52.50, evolucao: 4.70, classificacao: "36/94" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 42.30, bim2: 33.70, evolucao: -8.60, classificacao: "81/94" },
+                        { disciplina: "História", symbol: "📜", bim1: 32.50, bim2: 50.00, evolucao: 17.50, classificacao: "19/94" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 42.00, bim2: 40.50, evolucao: -1.50, classificacao: "86/94" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 63.00, bim2: 32.00, evolucao: -31.00, classificacao: "32/94" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 45.50, bim2: 48.00, evolucao: 2.50, classificacao: "59/94" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 52.00, bim2: 55.00, evolucao: 3.00, classificacao: "34/94" },
+                        { disciplina: "Tecnologia e Inovação", symbol: "💻", bim1: 42.00, bim2: 51.00, evolucao: 9.00, classificacao: "44/94" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 44.70, bim2: 45.40, evolucao: 0.70, classificacao: '-', isGeneral: true }
+                },
+                "8º Ano A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 95.70, bim2: 95.70, evolucao: 0.00, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 48.30, bim2: 40.70, evolucao: -7.60, classificacao: "49/96" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 27.60, bim2: 34.50, evolucao: 6.90, classificacao: "51/96" },
+                        { disciplina: "História", symbol: "📜", bim1: 37.80, bim2: 44.50, evolucao: 6.70, classificacao: "78/96" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 50.00, bim2: 46.40, evolucao: -3.60, classificacao: "94/96" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 59.00, bim2: 41.80, evolucao: -17.20, classificacao: "65/96" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 42.90, bim2: 45.50, evolucao: 2.60, classificacao: "30/96" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 31.40, bim2: 40.00, evolucao: 8.60, classificacao: "66/96" },
+                        { disciplina: "Tecnologia e Inovação", symbol: "💻", bim1: 38.10, bim2: 36.40, evolucao: -1.70, classificacao: '-' }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 42.00, bim2: 41.10, evolucao: -0.90, classificacao: '-', isGeneral: true }
+                },
+                "8º Ano B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 95.00, bim2: 98.00, evolucao: 3.00, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 44.20, bim2: 39.70, evolucao: -4.50, classificacao: "91/96" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 27.80, bim2: 34.70, evolucao: 6.90, classificacao: "58/96" },
+                        { disciplina: "História", symbol: "📜", bim1: 35.80, bim2: 42.80, evolucao: 7.00, classificacao: "94/96" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 45.80, bim2: 46.70, evolucao: 0.90, classificacao: "87/96" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 52.60, bim2: 48.40, evolucao: -4.20, classificacao: "56/96" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 44.70, bim2: 38.90, evolucao: -5.80, classificacao: "91/96" },
+                        { disciplina: "Educação Financeira", symbol: "💰", bim1: 46.30, bim2: 36.80, evolucao: -9.50, classificacao: "75/96" },
+                        { disciplina: "Tecnologia e Inovação", symbol: "💻", bim1: 42.10, bim2: 42.10, evolucao: 0.00, classificacao: '-' }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 41.00, bim2: 40.40, evolucao: -0.60, classificacao: '-', isGeneral: true }
+                },
+                "9º Ano A": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 93.80, bim2: 92.90, evolucao: -0.90, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 44.80, bim2: 59.00, evolucao: 14.20, classificacao: "69/92" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 27.90, bim2: 39.80, evolucao: 11.90, classificacao: "73/92" },
+                        { disciplina: "História", symbol: "📜", bim1: 35.80, bim2: 52.80, evolucao: 17.00, classificacao: "37/92" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 32.30, bim2: 45.20, evolucao: 12.90, classificacao: "91/92" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 38.60, bim2: 54.10, evolucao: 15.50, classificacao: "58/92" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 30.10, bim2: 42.30, evolucao: 12.20, classificacao: "16/92" },
+                        { disciplina: "OE Português", symbol: "📖", bim1: 0.00, bim2: 58.50, evolucao: 58.50, classificacao: "72/92" },
+                        { disciplina: "OE Matemática", symbol: "📐", bim1: 0.00, bim2: 42.30, evolucao: 42.30, classificacao: "44/92" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 37.90, bim2: 48.50, evolucao: 10.60, classificacao: '-', isGeneral: true }
+                },
+                "9º Ano B": {
+                    generalMetrics: [{ id: "participacao", disciplina: "Participação Geral", symbol: "📊", bim1: 100.00, bim2: 98.40, evolucao: -1.60, classificacao: '-', isGeneral: true }],
+                    disciplineData: [
+                        { disciplina: "Língua Portuguesa", symbol: "📚", bim1: 56.50, bim2: 70.00, evolucao: 13.50, classificacao: "26/92" },
+                        { disciplina: "Matemática", symbol: "➕", bim1: 37.80, bim2: 53.00, evolucao: 15.20, classificacao: "05/92" },
+                        { disciplina: "História", symbol: "📜", bim1: 43.50, bim2: 61.30, evolucao: 17.80, classificacao: "22/92" },
+                        { disciplina: "Geografia", symbol: "🌎", bim1: 45.10, bim2: 61.90, evolucao: 16.80, classificacao: "05/92" },
+                        { disciplina: "Língua Inglesa", symbol: "🗣️", bim1: 47.10, bim2: 63.10, evolucao: 16.00, classificacao: "36/92" },
+                        { disciplina: "Ciências", symbol: "🔬", bim1: 40.60, bim2: 52.00, evolucao: 11.40, classificacao: "44/92" },
+                        { disciplina: "OE Português", symbol: "📖", bim1: 0.00, bim2: 66.50, evolucao: 66.50, classificacao: "42/92" },
+                        { disciplina: "OE Matemática", symbol: "📐", bim1: 0.00, bim2: 36.20, evolucao: 36.20, classificacao: "89/92" }
+                    ],
+                    overallGeneral: { id: "geral", disciplina: "Geral", symbol: "📈", bim1: 48.10, bim2: 58.60, evolucao: 10.50, classificacao: '-', isGeneral: true }
+                }
+            }
+        };
+
+        let highSchoolPerformanceChartInstance;
+        let highSchoolOverallChartInstance;
+        let fundamentalPerformanceChartInstance;
+        let fundamentalOverallChartInstance;
+        let overallAllClassesChartInstance;
+
+        // Helper to get the correct prefix for HTML IDs based on level
+        function getHtmlIdPrefix(level, type = 'general') {
+            if (level === 'Ensino Médio') {
+                return type === 'chart' ? 'highSchool' : 'high-school';
+            } else if (level === 'Ensino Fundamental') {
+                return type === 'chart' ? 'fundamental' : 'fundamental';
+            }
+            return ''; // Should not happen
+        }
+
+        // Função para atualizar os detalhes de uma turma específica
+        function updateClassDetails(level, className) {
+            const data = rawData[level][className];
+            const elementIdPrefix = getHtmlIdPrefix(level, 'general');
+            const chartIdPrefix = getHtmlIdPrefix(level, 'chart');
+
+            const tableBody = document.getElementById(`${elementIdPrefix}-evolution-table-body`);
+            const chartCanvas = document.getElementById(`${chartIdPrefix}PerformanceChart`);
+            const overallGeneralChartCanvas = document.getElementById(`${chartIdPrefix}OverallGeneralChart`);
+            const currentClassNameSpan = document.getElementById(`current-${elementIdPrefix}-class-name`);
+            
+            // Recommendation buttons and output sections
+            const generateRecommendationsBtn = document.getElementById(`generate-${elementIdPrefix}-recommendations-btn`);
+            const recommendationsOutput = document.getElementById(`${elementIdPrefix}-recommendations-output`);
+            const recommendationsText = document.getElementById(`${elementIdPrefix}-recommendations-text`);
+            const loadingIndicator = document.getElementById(`${elementIdPrefix}-loading-indicator`);
+
+
+            // Verificações de nulidade para elementos importantes
+            if (!tableBody || !chartCanvas || !overallGeneralChartCanvas || !currentClassNameSpan || !generateRecommendationsBtn || !recommendationsOutput || !recommendationsText || !loadingIndicator) {
+                console.error(`Erro: Um ou mais elementos DOM para ${level} - ${className} não foram encontrados.`);
+                return;
+            }
+
+            currentClassNameSpan.textContent = className;
+            tableBody.innerHTML = ''; // Limpa as linhas existentes
+
+            // Adiciona a linha de Participação Geral
+            data.generalMetrics.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'general-row';
+                const evolutionClass = item.evolucao > 0 ? 'positive-evolution' : (item.evolucao < 0 ? 'negative-evolution' : 'neutral-evolution');
+                const classificationText = item.classificacaoDE !== undefined ? item.classificacaoDE : (item.classificacao !== undefined ? item.classificacao : '-');
+                row.innerHTML = `
+                    <td><span class="discipline-symbol">${item.symbol || ''}</span> ${item.disciplina}</td>
+                    <td>${item.bim1.toFixed(2).replace('.', ',')}</td>
+                    <td>${item.bim2.toFixed(2).replace('.', ',')}</td>
+                    <td class="${evolutionClass}">${(item.evolucao > 0 ? '+' : '') + item.evolucao.toFixed(2).replace('.', ',')}</td>
+                    <td>${classificationText}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Adiciona uma linha vazia como separador
+            const separatorRow = document.createElement('tr');
+            separatorRow.innerHTML = `<td colspan="5" class="py-2"></td>`;
+            tableBody.appendChild(separatorRow);
+
+            // Adiciona as linhas das disciplinas regulares
+            data.disciplineData.forEach(item => {
+                const row = document.createElement('tr');
+                const evolutionClass = item.evolucao > 0 ? 'positive-evolution' : (item.evolucao < 0 ? 'negative-evolution' : 'neutral-evolution');
+                const classificationText = item.classificacaoDE !== undefined ? item.classificacaoDE : (item.classificacao !== undefined ? item.classificacao : '-');
+                row.innerHTML = `
+                    <td><span class="discipline-symbol">${item.symbol || ''}</span> ${item.disciplina}</td>
+                    <td>${item.bim1.toFixed(2).replace('.', ',')}</td>
+                    <td>${item.bim2.toFixed(2).replace('.', ',')}</td>
+                    <td class="${evolutionClass}">${(item.evolucao > 0 ? '+' : '') + item.evolucao.toFixed(2).replace('.', ',')}</td>
+                    <td>${classificationText}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Adiciona uma linha vazia antes do geral
+            const separatorRow2 = document.createElement('tr');
+            separatorRow2.innerHTML = `<td colspan="5" class="py-2"></td>`;
+            tableBody.appendChild(separatorRow2);
+
+            // Adiciona a linha de Desempenho Geral
+            if (data.overallGeneral) {
+                const row = document.createElement('tr');
+                row.className = 'general-row';
+                const evolutionClass = data.overallGeneral.evolucao > 0 ? 'positive-evolution' : (data.overallGeneral.evolucao < 0 ? 'negative-evolution' : 'neutral-evolution');
+                const classificationText = data.overallGeneral.classificacaoDE !== undefined ? data.overallGeneral.classificacaoDE : (data.overallGeneral.classificacao !== undefined ? data.overallGeneral.classificacao : '-');
+                row.innerHTML = `
+                    <td><span class="discipline-symbol">${data.overallGeneral.symbol || ''}</span> ${data.overallGeneral.disciplina}</td>
+                    <td>${data.overallGeneral.bim1.toFixed(2).replace('.', ',')}</td>
+                    <td>${data.overallGeneral.bim2.toFixed(2).replace('.', ',')}</td>
+                    <td class="${evolutionClass}">${(data.overallGeneral.evolucao > 0 ? '+' : '') + data.overallGeneral.evolucao.toFixed(2).replace('.', ',')}</td>
+                    <td>${classificationText}</td>
+                `;
+                tableBody.appendChild(row);
+            }
+
+            // Atualiza os gráficos
+            createPerformanceChart(level, className, chartCanvas, data.disciplineData);
+            createOverallGeneralChart(level, className, overallGeneralChartCanvas, data.overallGeneral);
+
+            // Hide recommendations section initially when changing class
+            recommendationsOutput.classList.add('hidden');
+            recommendationsText.innerHTML = ''; // Clear previous recommendations
+
+            // Remove existing listener to prevent multiple calls
+            const newButton = generateRecommendationsBtn.cloneNode(true);
+            generateRecommendationsBtn.parentNode.replaceChild(newButton, generateRecommendationsBtn);
+
+            newButton.addEventListener('click', async () => {
+                recommendationsOutput.classList.remove('hidden');
+                recommendationsText.innerHTML = '';
+                loadingIndicator.classList.remove('hidden');
+
+                const prompt = `
+                    Análise de desempenho da turma ${className} (Ensino ${level.split(' ')[1]}):
+                    Desempenho Geral: 1º Bimestre: ${data.overallGeneral.bim1}%, 2º Bimestre: ${data.overallGeneral.bim2}%, Evolução: ${data.overallGeneral.evolucao}%.
+
+                    Desempenho por Disciplina:
+                    ${data.disciplineData.map(d => `- ${d.disciplina}: 1º Bimestre: ${d.bim1}%, 2º Bimestre: ${d.bim2}%, Evolução: ${d.evolucao}%`).join('\n')}
+
+                    Com base nos dados fornecidos, atue como um consultor educacional e forneça 5 recomendações de melhoria de desempenho para esta turma. As recomendações devem ser práticas e abordar tanto os pontos fortes quanto as áreas que precisam de atenção. Apresente as recomendações como uma lista numerada. Seja conciso e focado em ações.
+                `;
+
+                try {
+                    const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        recommendationsText.innerHTML = text.replace(/\n/g, '<br>'); // Preserve newlines
+                    } else {
+                        recommendationsText.innerHTML = 'Não foi possível gerar recomendações no momento. Tente novamente.';
+                        console.error('Estrutura de resposta inesperada da API Gemini:', result);
+                    }
+                } catch (error) {
+                    recommendationsText.innerHTML = `Ocorreu um erro ao conectar com a API Gemini: ${error.message}`;
+                    console.error('Erro na chamada da API Gemini:', error);
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            });
+        }
+
+        // Cria o gráfico de desempenho por disciplina para uma turma específica
+        function createPerformanceChart(level, className, canvas, disciplineData) {
+            const disciplines = disciplineData.map(item => item.disciplina);
+            const gradesBim1 = disciplineData.map(item => item.bim1);
+            const gradesBim2 = disciplineData.map(item => item.bim2);
+            const evolutionColorsBim2 = disciplineData.map(item => item.evolucao > 0 ? 'rgba(40, 167, 69, 0.8)' : (item.evolucao < 0 ? 'rgba(220, 53, 69, 0.8)' : 'rgba(108, 117, 125, 0.8)'));
+            const evolutionBorderColorsBim2 = disciplineData.map(item => item.evolucao > 0 ? 'rgba(40, 167, 69, 1)' : (item.evolucao < 0 ? 'rgba(220, 53, 69, 1)' : 'rgba(108, 117, 125, 1)'));
+
+
+            const chartIdPrefix = getHtmlIdPrefix(level, 'chart');
+
+            let chartInstance;
+            if (level === 'Ensino Médio') {
+                if (highSchoolPerformanceChartInstance) highSchoolPerformanceChartInstance.destroy();
+                chartInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: disciplines,
+                        datasets: [
+                            { 
+                                label: '1º Bimestre', 
+                                data: gradesBim1, 
+                                backgroundColor: 'rgba(52, 152, 219, 0.8)', /* Azul para o 1º Bimestre */
+                                borderColor: 'rgba(52, 152, 219, 1)', 
+                                borderWidth: 1,
+                                barPercentage: 0.9, // Aumenta a espessura da barra
+                                categoryPercentage: 0.8 // Aumenta a espessura da barra
+                            },
+                            { 
+                                label: '2º Bimestre', 
+                                data: gradesBim2, 
+                                backgroundColor: evolutionColorsBim2, /* Cor dinâmica baseada na evolução */
+                                borderColor: evolutionBorderColorsBim2, /* Cor da borda dinâmica */
+                                borderWidth: 1,
+                                barPercentage: 0.9, // Aumenta a espessura da barra
+                                categoryPercentage: 0.8 // Aumenta a espessura da barra
+                            }
+                        ]
+                    },
+                    options: getChartOptions(`#${chartIdPrefix}PerformanceChart`, className)
+                });
+                highSchoolPerformanceChartInstance = chartInstance;
+            } else { // Ensino Fundamental
+                if (fundamentalPerformanceChartInstance) fundamentalPerformanceChartInstance.destroy();
+                chartInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: disciplines,
+                        datasets: [
+                            { 
+                                label: '1º Bimestre', 
+                                data: gradesBim1, 
+                                backgroundColor: 'rgba(52, 152, 219, 0.8)', /* Azul para o 1º Bimestre */
+                                borderColor: 'rgba(52, 152, 219, 1)', 
+                                borderWidth: 1,
+                                barPercentage: 0.9, // Aumenta a espessura da barra
+                                categoryPercentage: 0.8 // Aumenta a espessura da barra
+                            },
+                            { 
+                                label: '2º Bimestre', 
+                                data: gradesBim2, 
+                                backgroundColor: evolutionColorsBim2, /* Cor dinâmica baseada na evolução */
+                                borderColor: evolutionBorderColorsBim2, /* Cor da borda dinâmica */
+                                borderWidth: 1,
+                                barPercentage: 0.9, // Aumenta a espessura da barra
+                                categoryPercentage: 0.8 // Aumenta a espessura da barra
+                            }
+                        ]
+                    },
+                    options: getChartOptions(`#${chartIdPrefix}PerformanceChart`, className)
+                });
+                fundamentalPerformanceChartInstance = chartInstance;
+            }
+        }
+
+        // Cria o gráfico geral de desempenho para uma turma específica
+        function createOverallGeneralChart(level, className, canvas, overallData) {
+            const generalLabels = ['1º Bimestre', '2º Bimestre'];
+            const generalGrades = [overallData.bim1, overallData.bim2];
+            const evolutionColorOverall = overallData.evolucao > 0 ? 'rgba(40, 167, 69, 0.8)' : (overallData.evolucao < 0 ? 'rgba(220, 53, 69, 0.8)' : 'rgba(108, 117, 125, 0.8)');
+            const evolutionBorderColorOverall = overallData.evolucao > 0 ? 'rgba(40, 167, 69, 1)' : (overallData.evolucao < 0 ? 'rgba(220, 53, 69, 1)' : 'rgba(108, 117, 125, 1)');
+
+
+            const chartIdPrefix = getHtmlIdPrefix(level, 'chart');
+
+            let chartInstance;
+            if (level === 'Ensino Médio') {
+                if (highSchoolOverallChartInstance) highSchoolOverallChartInstance.destroy();
+                chartInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: generalLabels,
+                        datasets: [{
+                            label: 'Desempenho Geral',
+                            data: generalGrades,
+                            backgroundColor: ['rgba(52, 152, 219, 0.8)', evolutionColorOverall], /* Azul para o 1º Bimestre, cor dinâmica para o 2º */
+                            borderColor: ['rgba(52, 152, 219, 1)', evolutionBorderColorOverall],
+                            borderWidth: 1,
+                            barPercentage: 0.9, // Aumenta a espessura da barra
+                            categoryPercentage: 0.8 // Aumenta a espessura da barra
+                        }]
+                    },
+                    options: getOverallChartOptions(`#${chartIdPrefix}OverallGeneralChart`, className)
+                });
+                highSchoolOverallChartInstance = chartInstance;
+            } else { // Ensino Fundamental
+                if (fundamentalOverallChartInstance) fundamentalOverallChartInstance.destroy();
+                chartInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: generalLabels,
+                        datasets: [{
+                            label: 'Desempenho Geral',
+                            data: generalGrades,
+                            backgroundColor: ['rgba(52, 152, 219, 0.8)', evolutionColorOverall], /* Azul para o 1º Bimestre, cor dinâmica para o 2º */
+                            borderColor: ['rgba(52, 152, 219, 1)', evolutionBorderColorOverall],
+                            borderWidth: 1,
+                            barPercentage: 0.9, // Aumenta a espessura da barra
+                            categoryPercentage: 0.8 // Aumenta a espessura da barra
+                        }]
+                    },
+                    options: getOverallChartOptions(`#${chartIdPrefix}OverallGeneralChart`, className)
+                });
+                fundamentalOverallChartInstance = chartInstance;
+            }
+        }
+
+        // Opções de gráfico para desempenho por disciplina
+        function getChartOptions(titleElementId, className) {
+            const titleElement = document.querySelector(titleElementId);
+            if (titleElement) {
+                const spanElement = titleElement.parentElement.querySelector('span');
+                if (spanElement) {
+                    spanElement.textContent = className;
+                }
+            }
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    datalabels: {
+                        color: 'white', // Alterado para branco para contraste nas barras
+                        anchor: 'center', // Alinhado ao centro da barra
+                        align: 'center', // Alinhado ao centro da barra
+                        rotation: 0, // Sem rotação
+                        formatter: (value) => value.toFixed(1) + '%'
+                    },
+                    legend: {
+                        labels: {
+                            color: '#333333',
+                            font: { size: 14 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Porcentagem de Desempenho (%)', color: '#333333', font: { size: 14 } },
+                        ticks: { color: '#555555' },
+                        grid: { color: '#E0E0E0' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Disciplinas', color: '#333333', font: { size: 14 } },
+                        ticks: { color: '#555555' },
+                        grid: { color: '#E0E0E0' }
+                    }
+                }
+            };
+        }
+
+        // Opções de gráfico para desempenho geral
+        function getOverallChartOptions(titleElementId, className) {
+            const titleElement = document.querySelector(titleElementId);
+            if (titleElement) {
+                const spanElement = titleElement.parentElement.querySelector('span');
+                if (spanElement) {
+                    spanElement.textContent = className;
+                }
+            }
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    datalabels: {
+                        color: 'white', // Alterado para branco para contraste nas barras
+                        anchor: 'center', // Alinhado ao centro da barra
+                        align: 'center', // Alinhado ao centro da barra
+                        formatter: (value) => value.toFixed(1) + '%'
+                    },
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '%';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'Porcentagem de Desempenho (%)', color: '#333333' },
+                        ticks: { color: '#555555' },
+                        grid: { color: '#E0E0E0' }
+                    },
+                    x: {
+                        ticks: { color: '#555555' },
+                        grid: { color: '#E0E0E0' }
+                    }
+                }
+            };
+        }
+
+        // Preenche o seletor de turmas para um nível de ensino
+        function populateClassSelect(level) {
+            const selectElementId = `${getHtmlIdPrefix(level, 'general')}-class-select`;
+            const selectElement = document.getElementById(selectElementId);
+            if (!selectElement) {
+                console.error(`Elemento com ID ${selectElementId} não encontrado.`);
+                return;
+            }
+            selectElement.innerHTML = ''; // Limpa as opções existentes
+
+            for (const className in rawData[level]) {
+                const option = document.createElement('option');
+                option.value = className;
+                option.textContent = className;
+                selectElement.appendChild(option);
+            }
+
+            // Define a turma inicial selecionada e atualiza os detalhes
+            if (Object.keys(rawData[level]).length > 0) {
+                const initialClass = Object.keys(rawData[level])[0];
+                selectElement.value = initialClass;
+                updateClassDetails(level, initialClass);
+            }
+
+            // Adiciona o listener para mudança de seleção
+            selectElement.addEventListener('change', (event) => {
+                updateClassDetails(level, event.target.value);
+            });
+        }
+
+        // Gera as análises agregadas para um nível de ensino (melhor desempenho, maiores quedas, etc.)
+        function generateAggregatedAnalysis(levelData, listElementId, type) {
+            const listElement = document.getElementById(listElementId);
+            if (!listElement) {
+                console.error(`Elemento de lista com ID ${listElementId} não encontrado.`);
+                return;
+            }
+            listElement.innerHTML = '';
+            const aggregatedData = {}; // {discipline: {totalEvolution: X, count: Y}} ou {discipline: {totalBim2: X, count: Y}}
+
+            for (const className in levelData) {
+                levelData[className].disciplineData.forEach(discipline => {
+                    if (!aggregatedData[discipline.disciplina]) {
+                        aggregatedData[discipline.disciplina] = { value: 0, count: 0 };
+                    }
+                    if (type === 'bestPerformance') {
+                        if (discipline.bim2 >= 50) {
+                            aggregatedData[discipline.disciplina].value += discipline.bim2;
+                            aggregatedData[discipline.disciplina].count++;
+                        }
+                    } else if (type === 'biggestDrops') {
+                        if (discipline.evolucao < 0) {
+                            aggregatedData[discipline.disciplina].value += discipline.evolucao;
+                            aggregatedData[discipline.disciplina].count++;
+                        }
+                    } else if (type === 'ranking') {
+                        aggregatedData[discipline.disciplina].value += discipline.bim2;
+                        aggregatedData[discipline.disciplina].count++;
+                    }
+                });
+            }
+
+            let sortedResults = [];
+            if (type === 'bestPerformance') {
+                sortedResults = Object.keys(aggregatedData)
+                    .filter(d => aggregatedData[d].count > 0) // Inclui apenas disciplinas que atenderam ao critério
+                    .map(disciplineName => ({
+                        disciplina: disciplineName,
+                        averagePerformance: aggregatedData[disciplineName].value / aggregatedData[disciplineName].count
+                    }))
+                    .sort((a, b) => b.averagePerformance - a.averagePerformance);
+            } else if (type === 'biggestDrops') {
+                sortedResults = Object.keys(aggregatedData)
+                    .filter(d => aggregatedData[d].count > 0)
+                    .map(disciplineName => ({
+                        disciplina: disciplineName,
+                        averageEvolution: aggregatedData[disciplineName].value / aggregatedData[disciplineName].count
+                    }))
+                    .sort((a, b) => a.averageEvolution - b.averageEvolution); // Menor (mais negativo) primeiro
+            } else if (type === 'highestEvolutionClasses') {
+                const classEvolutions = [];
+                for (const className in levelData) {
+                    if(levelData[className].overallGeneral) {
+                        classEvolutions.push({
+                            class: className,
+                            evolution: levelData[className].overallGeneral.evolucao,
+                            bim1: levelData[className].overallGeneral.bim1,
+                            bim2: levelData[className].overallGeneral.bim2
+                        });
+                    }
+                }
+                sortedResults = classEvolutions.sort((a, b) => b.evolution - a.evolution);
+            } else if (type === 'ranking') {
+                 sortedResults = Object.keys(aggregatedData)
+                    .filter(d => aggregatedData[d].count > 0)
+                    .map(disciplineName => ({
+                        disciplina: disciplineName,
+                        average2ndBimestre: aggregatedData[disciplineName].value / aggregatedData[disciplineName].count
+                    }))
+                    .sort((a, b) => b.average2ndBimestre - a.average2ndBimestre);
+            }
+
+
+            if (sortedResults.length > 0) {
+                if (type === 'bestPerformance') {
+                    sortedResults.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        // Obtém as turmas que contribuíram para o alto desempenho desta disciplina
+                        const contributingClasses = [];
+                        for (const className in levelData) {
+                            levelData[className].disciplineData.forEach(d => {
+                                if (d.disciplina === item.disciplina && d.bim2 >= 50) {
+                                    contributingClasses.push(`${className} (${d.bim2.toFixed(2).replace('.', ',')}%)`);
+                                }
+                            });
+                        }
+                        li.innerHTML = `<strong>${item.disciplina}</strong>: Média de ${item.averagePerformance.toFixed(2).replace('.', ',')}%, com destaque em: ${contributingClasses.join(', ')}.`;
+                        listElement.appendChild(li);
+                    });
+                } else if (type === 'biggestDrops') {
+                    sortedResults.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        const contributingClasses = [];
+                        for (const className in levelData) {
+                            levelData[className].disciplineData.forEach(d => {
+                                if (d.disciplina === item.disciplina && d.evolucao < 0) {
+                                    contributingClasses.push(`${className} (${(d.evolucao).toFixed(2).replace('.', ',')}% )`);
+                                }
+                            });
+                        }
+                        li.innerHTML = `<strong>${item.disciplina}</strong>: Queda média de <span class="negative-evolution">${Math.abs(item.averageEvolution).toFixed(2).replace('.', ',')}%</span>, afetando: ${contributingClasses.join(', ')}.`;
+                        listElement.appendChild(li);
+                    });
+                } else if (type === 'highestEvolutionClasses') {
+                    sortedResults.slice(0, 3).forEach(item => { // Mostra os 3 primeiros
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        li.innerHTML = `A turma <strong>${item.class}</strong> teve uma evolução geral de 
+                                        <span class="${item.evolution > 0 ? 'positive-evolution' : (item.evolution < 0 ? 'negative-evolution' : 'neutral-evolution')}">
+                                        ${(item.evolution > 0 ? '+' : '') + item.evolution.toFixed(2).replace('.', ',')}%
+                                        </span> (de ${item.bim1.toFixed(2).replace('.', ',')}% para ${item.bim2.toFixed(2).replace('.', ',')}%).`;
+                        listElement.appendChild(li);
+                    });
+                } else if (type === 'ranking') {
+                    const tableBody = document.getElementById(listElementId);
+                    if (!tableBody) {
+                        console.error(`Corpo da tabela com ID ${listElementId} não encontrado.`);
+                        return;
+                    }
+                    sortedResults.forEach((item, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}º</td>
+                            <td>${item.disciplina}</td>
+                            <td>${item.average2ndBimestre.toFixed(2).replace('.', ',')}%</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            } else {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                if (type === 'bestPerformance') li.textContent = "Nenhuma disciplina atingiu desempenho acima de 50% neste nível de ensino.";
+                else if (type === 'biggestDrops') li.textContent = "Nenhuma disciplina apresentou queda significativa neste nível de ensino.";
+                else if (type === 'highestEvolutionClasses') li.textContent = "Dados insuficientes para determinar a evolução das turmas neste nível de ensino.";
+                listElement.appendChild(li);
+            }
+        }
+
+        // Cria o gráfico de desempenho geral para todas as turmas
+        function createOverallPerformanceAllClassesChart() {
+            const allClassesLabels = [];
+            const allClassesBim1 = [];
+            const allClassesBim2 = [];
+            const allClassEvolutionColors = [];
+
+            for (const level in rawData) {
+                for (const className in rawData[level]) {
+                    allClassesLabels.push(className);
+                    allClassesBim1.push(rawData[level][className].overallGeneral.bim1);
+                    allClassesBim2.push(rawData[level][className].overallGeneral.bim2);
+                    const evolution = rawData[level][className].overallGeneral.evolucao;
+                    allClassEvolutionColors.push(evolution > 0 ? 'rgba(40, 167, 69, 0.8)' : (evolution < 0 ? 'rgba(220, 53, 69, 0.8)' : 'rgba(108, 117, 125, 0.8)'));
+                }
+            }
+
+            const overallAllClassesChartCanvas = document.getElementById('overallPerformanceAllClassesChart');
+            if (!overallAllClassesChartCanvas) {
+                console.error(`Elemento canvas com ID overallPerformanceAllClassesChart não encontrado.`);
+                return;
+            }
+            if (overallAllClassesChartInstance) overallAllClassesChartInstance.destroy();
+
+            overallAllClassesChartInstance = new Chart(overallAllClassesChartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: allClassesLabels,
+                    datasets: [
+                        { 
+                            label: '1º Bimestre (%)', 
+                            data: allClassesBim1, 
+                            backgroundColor: 'rgba(52, 152, 219, 0.8)', 
+                            borderColor: 'rgba(52, 152, 219, 1)', 
+                            borderWidth: 1,
+                            barPercentage: 0.9, // Aumenta a espessura da barra
+                            categoryPercentage: 0.8 // Aumenta a espessura da barra
+                        },
+                        { 
+                            label: '2º Bimestre (%)', 
+                            data: allClassesBim2, 
+                            backgroundColor: allClassEvolutionColors, /* Cor dinâmica baseada na evolução */
+                            borderColor: allClassEvolutionColors.map(color => color.replace('0.8)', '1)')), /* Borda sólida da cor dinâmica */
+                            borderWidth: 1,
+                            barPercentage: 0.9, // Aumenta a espessura da barra
+                            categoryPercentage: 0.8 // Aumenta a espessura da barra
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: 'white', // Alterado para branco para contraste nas barras
+                            anchor: 'center', // Alinhado ao centro da barra
+                            align: 'center', // Alinhado ao centro da barra
+                            formatter: (value) => value.toFixed(1) + '%'
+                        },
+                        legend: {
+                            labels: {
+                                color: '#333333',
+                                font: { size: 14 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Porcentagem de Desempenho (%)', color: '#333333', font: { size: 14 } },
+                            ticks: { color: '#555555' },
+                            grid: { color: '#E0E0E0' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Turma', color: '#333333', font: { size: 14 } },
+                            ticks: { color: '#555555' },
+                            grid: { color: '#E0E0E0' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gera a análise geral (todas as turmas combinadas)
+        function generateOverallAnalysis() {
+            // Disciplinas com Melhor Desempenho (Todas as Turmas)
+            const overallBestPerformanceList = document.getElementById('overall-best-performance-list');
+            if (!overallBestPerformanceList) {
+                console.error(`Elemento de lista com ID overall-best-performance-list não encontrado.`);
+                return;
+            }
+            overallBestPerformanceList.innerHTML = '';
+            const allDisciplinesBestPerformance = {};
+
+            for (const level in rawData) {
+                for (const className in rawData[level]) {
+                    rawData[level][className].disciplineData.forEach(discipline => {
+                        if (discipline.bim2 >= 50) {
+                            if (!allDisciplinesBestPerformance[discipline.disciplina]) {
+                                allDisciplinesBestPerformance[discipline.disciplina] = { totalScore: 0, count: 0, contributingClasses: [] };
+                            }
+                            allDisciplinesBestPerformance[discipline.disciplina].totalScore += discipline.bim2;
+                            allDisciplinesBestPerformance[discipline.disciplina].count++;
+                            allDisciplinesBestPerformance[discipline.disciplina].contributingClasses.push({ class: className, performance: discipline.bim2 });
+                        }
+                    });
+                }
+            }
+
+            const rankedBestDisciplines = Object.keys(allDisciplinesBestPerformance).map(disciplineName => ({
+                disciplina: disciplineName,
+                averagePerformance: allDisciplinesBestPerformance[disciplineName].totalScore / allDisciplinesBestPerformance[disciplineName].count,
+                contributingClasses: allDisciplinesBestPerformance[disciplineName].contributingClasses
+            }));
+            rankedBestDisciplines.sort((a, b) => b.averagePerformance - a.averagePerformance);
+
+            if (rankedBestDisciplines.length > 0) {
+                rankedBestDisciplines.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'list-item';
+                    const classesInfo = item.contributingClasses.map(c => `${c.class} (${c.performance.toFixed(2).replace('.', ',')}%)`).join(', ');
+                    li.innerHTML = `<strong>${item.disciplina}</strong>: Média de ${item.averagePerformance.toFixed(2).replace('.', ',')}%, com destaque em: ${classesInfo}.`;
+                    overallBestPerformanceList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.textContent = "Nenhuma disciplina atingiu desempenho acima de 50% em todas as turmas analisadas.";
+                overallBestPerformanceList.appendChild(li);
+            }
+
+
+            // Turmas com Maior Evolução Geral
+            const overallHighestEvolutionClassesList = document.getElementById('overall-highest-evolution-classes-list');
+            if (!overallHighestEvolutionClassesList) {
+                console.error(`Elemento de lista com ID overall-highest-evolution-classes-list não encontrado.`);
+                return;
+            }
+            overallHighestEvolutionClassesList.innerHTML = '';
+            const allClassEvolutions = [];
+            for (const level in rawData) {
+                for (const className in rawData[level]) {
+                    if (rawData[level][className].overallGeneral) {
+                        allClassEvolutions.push({
+                            class: className,
+                            evolution: rawData[level][className].overallGeneral.evolucao,
+                            bim1: rawData[level][className].overallGeneral.bim1,
+                            bim2: rawData[level][className].overallGeneral.bim2
+                        });
+                    }
+                }
+            }
+            allClassEvolutions.sort((a, b) => b.evolution - a.evolution);
+
+            if (allClassEvolutions.length > 0) {
+                allClassEvolutions.slice(0, 5).forEach(item => { // Mostra os 5 primeiros
+                    const li = document.createElement('li');
+                    li.className = 'list-item';
+                    li.innerHTML = `A turma <strong>${item.class}</strong> teve uma evolução geral de 
+                                    <span class="${item.evolution > 0 ? 'positive-evolution' : (item.evolution < 0 ? 'negative-evolution' : 'neutral-evolution')}">
+                                    ${(item.evolution > 0 ? '+' : '') + item.evolution.toFixed(2).replace('.', ',')}%
+                                    </span> (de ${item.bim1.toFixed(2).replace('.', ',')}% para ${item.bim2.toFixed(2).replace('.', ',')}%).`;
+                    overallHighestEvolutionClassesList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.textContent = "Dados insuficientes para determinar a evolução geral das turmas.";
+                overallHighestEvolutionClassesList.appendChild(li);
+            }
+
+            // Disciplinas com Maiores Quedas
+            const overallBiggestDropsList = document.getElementById('overall-biggest-drops-list');
+            if (!overallBiggestDropsList) {
+                console.error(`Elemento de lista com ID overall-biggest-drops-list não encontrado.`);
+                return;
+            }
+            overallBiggestDropsList.innerHTML = '';
+            const allDisciplineDrops = {};
+            for (const level in rawData) {
+                for (const className in rawData[level]) {
+                    rawData[level][className].disciplineData.forEach(discipline => {
+                        if (discipline.evolucao < 0) {
+                            if (!allDisciplineDrops[discipline.disciplina]) {
+                                allDisciplineDrops[discipline.disciplina] = { totalEvolution: 0, count: 0 };
+                            }
+                            allDisciplineDrops[discipline.disciplina].totalEvolution += discipline.evolucao;
+                            allDisciplineDrops[discipline.disciplina].count++;
+                        }
+                    });
+                }
+            }
+
+            const aggregatedAllDrops = Object.keys(allDisciplineDrops).map(disciplineName => ({
+                disciplina: disciplineName,
+                averageEvolution: allDisciplineDrops[disciplineName].totalEvolution / allDisciplineDrops[disciplineName].count
+            }));
+            aggregatedAllDrops.sort((a, b) => a.averageEvolution - b.averageEvolution);
+
+            if (aggregatedAllDrops.length > 0) {
+                aggregatedAllDrops.slice(0, 5).forEach(item => { // Mostra os 5 primeiros
+                    const li = document.createElement('li');
+                    li.className = 'list-item';
+                    const contributingClasses = [];
+                    for (const level in rawData) {
+                        for (const className in rawData[level]) {
+                            rawData[level][className].disciplineData.forEach(d => {
+                                if (d.disciplina === item.disciplina && d.evolucao < 0) {
+                                    contributingClasses.push(`${className} (${(d.evolucao).toFixed(2).replace('.', ',')}% )`);
+                                }
+                            });
+                        }
+                    }
+                    li.innerHTML = `<strong>${item.disciplina}</strong>: Queda média de <span class="negative-evolution">${Math.abs(item.averageEvolution).toFixed(2).replace('.', ',')}%</span>, afetando: ${contributingClasses.join(', ')}.`;
+                    overallBiggestDropsList.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.textContent = "Nenhuma disciplina apresentou queda significativa em todas as turmas analisadas.";
+                overallBiggestDropsList.appendChild(li);
+            }
+
+            // Classificação Geral por Disciplina
+            const overallDisciplineRankingTableBody = document.getElementById('overall-discipline-ranking-table-body');
+            if (!overallDisciplineRankingTableBody) {
+                console.error(`Corpo da tabela com ID overall-discipline-ranking-table-body não encontrado.`);
+                return;
+            }
+            overallDisciplineRankingTableBody.innerHTML = '';
+            const allDisciplines2ndBimestreOverall = {};
+
+            for (const level in rawData) {
+                for (const className in rawData[level]) {
+                    rawData[level][className].disciplineData.forEach(discipline => {
+                        if (!allDisciplines2ndBimestreOverall[discipline.disciplina]) {
+                            allDisciplines2ndBimestreOverall[discipline.disciplina] = { totalScore: 0, count: 0 };
+                        }
+                        allDisciplines2ndBimestreOverall[discipline.disciplina].totalScore += discipline.bim2;
+                        allDisciplines2ndBimestreOverall[discipline.disciplina].count++;
+                    });
+                }
+            }
+
+            const rankedAllDisciplines = Object.keys(allDisciplines2ndBimestreOverall).map(disciplineName => ({
+                disciplina: disciplineName,
+                average2ndBimestre: allDisciplines2ndBimestreOverall[disciplineName].totalScore / allDisciplines2ndBimestreOverall[disciplineName].count
+            }));
+            rankedAllDisciplines.sort((a, b) => b.average2ndBimestre - a.average2ndBimestre);
+
+            rankedAllDisciplines.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}º</td>
+                    <td>${item.disciplina}</td>
+                    <td>${item.average2ndBimestre.toFixed(2).replace('.', ',')}%</td>
+                `;
+                overallDisciplineRankingTableBody.appendChild(row);
+            });
+
+            createOverallPerformanceAllClassesChart();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            function showTab(tabId) {
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                tabButtons.forEach(button => {
+                    button.classList.remove('active');
+                });
+
+                const targetContent = document.getElementById(`${tabId}-content`);
+                if (targetContent) {
+                    targetContent.classList.remove('hidden');
+                } else {
+                    console.error(`Conteúdo da aba com ID ${tabId}-content não encontrado.`);
+                }
+
+                const targetButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+                if (targetButton) {
+                    targetButton.classList.add('active');
+                } else {
+                    console.error(`Botão da aba com data-tab="${tabId}" não encontrado.`);
+                }
+            }
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.dataset.tab;
+                    showTab(tabId);
+                    if (tabId === 'ensino-medio') {
+                        populateClassSelect('Ensino Médio');
+                        generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-best-performance-list', 'bestPerformance');
+                        generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-highest-evolution-classes-list', 'highestEvolutionClasses');
+                        generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-biggest-drops-list', 'biggestDrops');
+                        generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-discipline-ranking-table-body', 'ranking');
+                    } else if (tabId === 'ensino-fundamental') {
+                        populateClassSelect('Ensino Fundamental');
+                        generateAggregatedAnalysis(rawData['Ensino Fundamental'], 'fundamental-best-performance-list', 'bestPerformance');
+                        generateAggregatedAnalysis(rawData['Ensino Fundamental'], 'fundamental-highest-evolution-classes-list', 'highestEvolutionClasses');
+                        generateAggregatedAnalysis(rawData['Ensino Fundamental'], 'biggest-fundamental-drops-list', 'biggestDrops');
+                        generateAggregatedAnalysis(rawData['Ensino Fundamental'], 'fundamental-discipline-ranking-table-body', 'ranking');
+                    } else if (tabId === 'geral') {
+                         generateOverallAnalysis();
+                    }
+                });
+            });
+
+            // Carregamento inicial: exibe a aba do Ensino Médio
+            showTab('ensino-medio');
+            populateClassSelect('Ensino Médio');
+            generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-best-performance-list', 'bestPerformance');
+            generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-highest-evolution-classes-list', 'highestEvolutionClasses');
+            generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-biggest-drops-list', 'biggestDrops');
+            generateAggregatedAnalysis(rawData['Ensino Médio'], 'high-school-discipline-ranking-table-body', 'ranking');
+        });
+    </script>
+</body>
+</html>
